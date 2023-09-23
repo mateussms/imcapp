@@ -1,4 +1,5 @@
 class PessoaModel {
+  
   String nome;
   double peso;
   double altura;
@@ -22,4 +23,11 @@ class PessoaModel {
       default:                 return "Faixa não identificada";
     }
   }
+
+ @override
+  String toString() {
+    // TODO: implement toString
+    return this.nome+" - "+ this.peso.toString() + "-" + this.altura.toString();
+  }
+
 }

@@ -12,8 +12,10 @@ class PessoaImcRepository{
     return (classificacao == null || classificacao.isEmpty) ? _pessoaModel : _pessoaModel.where((element) => element.retornaClassificacao().toLowerCase().contains(classificacao.toLowerCase())).toList();
   }
 
-  void delete(PessoaModel pessoaModel){
+  Future<void> delete(PessoaModel pessoaModel) async {
     _pessoaModel.remove(pessoaModel);
   }
+
+ 
 
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:imcapp/model/pessoa_model.dart';
 import 'package:imcapp/repository/pessoa_imc_repository.dart';
+import 'package:uuid/uuid.dart';
 
 class ImcPage extends StatefulWidget {
   const ImcPage({super.key});
@@ -183,7 +184,7 @@ class _ImcPageState extends State<ImcPage> {
                         itemBuilder: (_, int index){
                           return 
                               Dismissible(
-                                key: Key(index.toString()),
+                                key: Key(const Uuid().v4.toString()),
                                  background: Container(
                                   color: Colors.red,
                                   alignment: Alignment.centerRight,
@@ -193,8 +194,8 @@ class _ImcPageState extends State<ImcPage> {
                                     color: Colors.white,
                                   ),
                                 ),
-                                onDismissed: (direction) {
-                                  _pessoaImcRepository.delete(_pessoaImcRepository.getList(classificacao:_classificacao)[index]);
+                                onDismissed: (direction) async {
+                                  await _pessoaImcRepository.delete(_pessoaImcRepository.getList(classificacao:_classificacao)[index]);
                                   setState(() {});
                                 },
                                 child: Card(
