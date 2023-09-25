@@ -1,6 +1,6 @@
-# imcapp
+# IMC App
 
-A new Flutter project.
+Desafio DIO - Aprimorando a sua Calculadora de IMC com Flutter.
 
 ## Getting Started
 
