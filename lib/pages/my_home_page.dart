@@ -1,4 +1,8 @@
+import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:imcapp/pages/configuracao_page.dart';
+import 'package:imcapp/pages/controle_peso_page.dart';
+import 'package:imcapp/pages/imc_page.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -9,13 +13,12 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
+  late TabController tabController;
+   @override
+  void initState() {
+    super.initState();
+    tabController = TabController(initialIndex: 0, length: 3, vsync: this);
   }
 
   @override
@@ -26,25 +29,25 @@ class _MyHomePageState extends State<MyHomePage> {
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           title: Text(widget.title),
         ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              const Text(
-                'You have pushed the button this many times:',
-              ),
-              Text(
-                '$_counter',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-            ],
-          ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _incrementCounter,
-          tooltip: 'Increment',
-          child: const Icon(Icons.add),
-        ), // This trailing comma makes auto-formatting nicer for build methods.
+        body:  TabBarView(
+        controller: tabController,
+        children: const [
+          ImcPage(),
+          ControlePesoPage(),
+          ConfiguracaoPage(),
+        ],
+      ),bottomNavigationBar: ConvexAppBar.badge(
+        const {},// with TickerProviderStateMixin
+        items: const [
+          TabItem(icon: Icons.balance, title: 'IMC'),
+          TabItem(icon: Icons.graphic_eq, title: 'Peso'),
+          TabItem(icon: Icons.miscellaneous_services, title: 'Configuração'),
+          
+        ],
+        onTap: (int i) => tabController.index = i,
+        controller: tabController,
+      ),
+        
       ),
     );
   }

@@ -6,6 +6,7 @@ class PessoaModel {
 
   PessoaModel({required this.nome, required this.peso, required this.altura});
 
+
   double retornaIMC(){
     return double.parse((peso/(altura * 2)).toStringAsFixed(2));
   }
@@ -24,10 +25,10 @@ class PessoaModel {
     }
   }
 
+
  @override
   String toString() {
-    // TODO: implement toString
-    return this.nome+" - "+ this.peso.toString() + "-" + this.altura.toString();
+    return ("Nome: $nome - Peso: $peso - Altura: $altura");
   }
 
 }

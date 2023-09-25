@@ -1,25 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:imcapp/model/controle_peso_model.dart';
 import 'package:imcapp/model/pessoa_model.dart';
-import 'package:imcapp/repository/pessoa_imc_repository.dart';
+import 'package:imcapp/repository/configuracao_repository.dart';
+import 'package:imcapp/repository/controle_peso_repository.dart';
 import 'package:uuid/uuid.dart';
 
-class ImcPage extends StatefulWidget {
-  const ImcPage({super.key});
+class ControlePesoPage extends StatefulWidget {
+  const ControlePesoPage({super.key});
 
   @override
-  State<ImcPage> createState() => _ImcPageState();
+  State<ControlePesoPage> createState() => _ControlePesoPageState();
 }
 
-class _ImcPageState extends State<ImcPage> {
-  final PessoaImcRepository _pessoaImcRepository = PessoaImcRepository();
+class _ControlePesoPageState extends State<ControlePesoPage> {
+  
   final TextEditingController classificacaoController = TextEditingController();
-
   final TextEditingController nomeController = TextEditingController();
   final TextEditingController pesoController = TextEditingController();
   final TextEditingController alturaController = TextEditingController();
 
+  late ControlePesoRepository controlePesoRepository;
+  late ConfiguracaoRepository configuracaoRepository;
+  List<ControlePesoModel> controlePesoModel = [];
 
-  String _classificacao = "";
+  final Uuid _uuid = const Uuid();
 
   @override
   void initState() {
@@ -27,8 +31,13 @@ class _ImcPageState extends State<ImcPage> {
     carregaDados();
   }
 
-  carregaDados(){
-
+  carregaDados() async{
+    controlePesoRepository  = await ControlePesoRepository.carregar();
+    configuracaoRepository  = await ConfiguracaoRepository.carregar();
+    
+    controlePesoModel     = controlePesoRepository.obterDados();
+    nomeController.text   = configuracaoRepository.obterDados().nome;
+    alturaController.text = configuracaoRepository.obterDados().altura.toString();
     setState(() {});
   }
 
@@ -51,7 +60,18 @@ class _ImcPageState extends State<ImcPage> {
                           labelText: "Nome",
                           icon: Icon(Icons.people)
                         ),
-                        keyboardType: TextInputType.text                  
+                        keyboardType: TextInputType.text,
+                        readOnly: true,               
+                    ),
+                    
+                    TextField(
+                            controller: alturaController,
+                            decoration: const InputDecoration(
+                              labelText: "Altura",
+                              icon: Icon(Icons.height)
+                            ),
+                            keyboardType: TextInputType.number,
+                        readOnly: true,                  
                     ),
                     TextField(
                             controller: pesoController,
@@ -61,23 +81,15 @@ class _ImcPageState extends State<ImcPage> {
                             ),
                             keyboardType: TextInputType.number                  
                     ),
-                    TextField(
-                            controller: alturaController,
-                            decoration: const InputDecoration(
-                              labelText: "Altura",
-                              icon: Icon(Icons.height)
-                            ),
-                            keyboardType: TextInputType.number                  
-                    ),
                     TextButton(
-                      onPressed: (){
-                        if(nomeController.text .trim().isEmpty){
+                      onPressed: () async{
+                        if(nomeController.text.trim().isEmpty){
                           showDialog(
                             context: context, 
                             builder: (_){
                             return AlertDialog(
                                     title: const Text('Alerta'),
-                                    content: const Text('Preencha o campo nome'),
+                                    content: const Text('Configure o nome de usuário nas configurações.'),
                                     actions: [
                                       TextButton(
                                         onPressed: () {
@@ -90,7 +102,26 @@ class _ImcPageState extends State<ImcPage> {
                           });
                           return;
                         }
-                         if(pesoController.text .trim().isEmpty){
+                        if(alturaController.text.trim().isEmpty){
+                          showDialog(
+                            context: context, 
+                            builder: (_){
+                            return AlertDialog(
+                                    title: const Text('Alerta'),
+                                    content: const Text('Configure a altura do usuário nas configurações.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop(); // Fecha o alerta
+                                        },
+                                        child: const Text('Fechar'),
+                                      ),
+                                    ],
+                                  );
+                          });
+                          return;
+                        }
+                          if(pesoController.text.trim().isEmpty){
                           showDialog(
                             context: context, 
                             builder: (_){
@@ -109,29 +140,10 @@ class _ImcPageState extends State<ImcPage> {
                           });
                           return;
                         }
-                        if(alturaController.text .trim().isEmpty){
-                          showDialog(
-                            context: context, 
-                            builder: (_){
-                            return AlertDialog(
-                                    title: const Text('Alerta'),
-                                    content: const Text('Preencha o campo altura'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop(); // Fecha o alerta
-                                        },
-                                        child: const Text('Fechar'),
-                                      ),
-                                    ],
-                                  );
-                          });
-                          return;
-                        }
-                        _pessoaImcRepository.add(PessoaModel(nome: nomeController.text, peso: double.tryParse(pesoController.text)??0, altura: double.tryParse(alturaController.text) ?? 0));
-                        nomeController.text   = "";
+                        await controlePesoRepository.salvar(ControlePesoModel(_uuid.v4.hashCode.toString(), nomeController.text,double.parse(alturaController.text),double.parse(pesoController.text),DateTime.now()));
                         pesoController.text   = "";
-                        alturaController.text = "";
+                        controlePesoModel     = controlePesoRepository.obterDados();
+                        // ignore: use_build_context_synchronously
                         Navigator.pop(context);
                         setState(() {});
                       }, 
@@ -148,26 +160,9 @@ class _ImcPageState extends State<ImcPage> {
         tooltip: "Adicionar IMC", 
         child: const Icon(Icons.add),
         ),
-        //appBar: AppBar(
-        //  title: const Text("IMC", style: TextStyle(color: Colors.white),),
-        //  backgroundColor: const Color.fromARGB(255, 17, 0, 167),
-        //  
-        //),
         body: Column(
             children: [
-            TextField(
-                    controller: classificacaoController,
-                    decoration: const InputDecoration(
-                      labelText: "Ex.: Saudável",
-                      icon: Icon(Icons.search)
-                    ),
-                    onChanged: (value) {
-                      _classificacao = value;
-                      setState(() {});
-                    },
-                    keyboardType: TextInputType.text                  
-            ),
-            _pessoaImcRepository.getList(classificacao:_classificacao).isEmpty ?
+            (controlePesoModel.isEmpty) ?
               const Center(
                   child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
@@ -180,11 +175,11 @@ class _ImcPageState extends State<ImcPage> {
             :
               Expanded(
                 child: ListView.builder(
-                        itemCount: _pessoaImcRepository.getList(classificacao:_classificacao).length,
+                        itemCount: controlePesoModel.length,
                         itemBuilder: (_, int index){
                           return 
                               Dismissible(
-                                key: Key(const Uuid().v4.toString()),
+                                key: Key(UniqueKey().toString()),
                                  background: Container(
                                   color: Colors.red,
                                   alignment: Alignment.centerRight,
@@ -195,7 +190,8 @@ class _ImcPageState extends State<ImcPage> {
                                   ),
                                 ),
                                 onDismissed: (direction) async {
-                                  await _pessoaImcRepository.delete(_pessoaImcRepository.getList(classificacao:_classificacao)[index]);
+                                  await controlePesoRepository.delete(index);
+                                  controlePesoModel = controlePesoRepository.obterDados();
                                   setState(() {});
                                 },
                                 child: Card(
@@ -217,11 +213,14 @@ class _ImcPageState extends State<ImcPage> {
                                               children: [
                                               
                                                 Text(
-                                                  _pessoaImcRepository.getList(classificacao:_classificacao)[index].nome,
+                                                  "${controlePesoModel[index].nome} - ${controlePesoModel[index].peso}",
                                                   style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                                                 ),
                                                 Text(
-                                                  _pessoaImcRepository.getList(classificacao:_classificacao)[index].retornaClassificacao(),
+                                                  PessoaModel(nome: controlePesoModel[index].nome, peso: controlePesoModel[index].peso, altura: controlePesoModel[index].altura,).retornaClassificacao(),
+                                                  style: const TextStyle(fontSize: 12)),
+                                                Text("Data: ${controlePesoModel[index].data}"
+                                                  ,
                                                   style: const TextStyle(fontSize: 12)),
                                               ],
                                             ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:imcapp/pages/imc_page.dart';
+import 'package:imcapp/pages/my_home_page.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 255, 255, 255)),
         useMaterial3: true,
       ),
-      home: const ImcPage(),
+      home: const MyHomePage(title: "Desafio APP"),
     );
   }
 }
